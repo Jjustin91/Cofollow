@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Foundation\Application;
+use App\Models\Organization;
 use App\Models\Event;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -50,5 +51,27 @@ Route::middleware([
         $task->update(['is_completed' => $request->boolean('is_completed')]);
         return back();
     })->name('tasks.update');
+
+    // View all organizations
+    Route::get('/organizations', function (Request $request) {
+        $user = $request->user();
+        
+        // Fetch orgs and attach a boolean checking if the current user is already a member
+        $organizations = Organization::with('college')->get()->map(function ($org) use ($user) {
+            $org->is_member = $org->users()->where('user_id', $user->id)->exists();
+            return $org;
+        });
+
+        return Inertia::render('Organizations', [
+            'organizations' => $organizations
+        ]);
+    })->name('organizations.index');
+
+    // Toggle joining/leaving an organization
+    Route::post('/organizations/{organization}/toggle', function (Request $request, Organization $organization) {
+        // The toggle() method automatically adds the user if they aren't in the org, and removes them if they are!
+        $request->user()->organizations()->toggle($organization->id);
+        return back();
+    })->name('organizations.toggle');
 
 });

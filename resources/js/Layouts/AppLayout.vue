@@ -57,6 +57,11 @@ const logout = () => {
                                 <NavLink :href="route('dashboard')" :active="route().current('dashboard')">
                                     Dashboard
                                 </NavLink>
+
+                                <!-- Add this block here! -->
+                                <NavLink :href="route('organizations.index')" :active="route().current('organizations.index')">
+                                    Organizations
+                                </NavLink>
                             </div>
                         </div>
 
@@ -123,8 +128,17 @@ const logout = () => {
                             <div class="ms-3 relative">
                                 <Dropdown align="right" width="48">
                                     <template #trigger>
-                                        <button v-if="$page.props.jetstream.managesProfilePhotos" class="flex text-sm border-2 border-transparent rounded-full focus:outline-none focus:border-gray-300 transition">
-                                            <img class="size-8 rounded-full object-cover" :src="$page.props.auth.user.profile_photo_url" :alt="$page.props.auth.user.name">
+                                        <button v-if="$page.props.jetstream.managesProfilePhotos" class="flex items-center gap-2 text-sm border-2 border-transparent rounded-full focus:outline-none focus:border-transparent transition pr-2">
+                                            <!-- The Profile Photo -->
+                                            <img class="h-8 w-8 rounded-full object-cover border border-gray-200" :src="$page.props.auth.user.profile_photo_url" :alt="$page.props.auth.user.name">
+                                            
+                                            <!-- The Name and Dropdown Arrow (Hidden on very small mobile screens) -->
+                                            <div class="hidden sm:flex items-center gap-1">
+                                                <span class="text-gray-700 font-medium">{{ $page.props.auth.user.name}}</span>
+                                                <svg class="h-4 w-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                                                </svg>
+                                            </div>
                                         </button>
 
                                         <span v-else class="inline-flex rounded-md">

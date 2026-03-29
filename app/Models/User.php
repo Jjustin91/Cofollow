@@ -88,4 +88,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(Task::class);
     }
+
+    // A user can join many organizations
+    public function organizations()
+    {
+        return $this->belongsToMany(Organization::class)->withPivot('role')->withTimestamps();
+    }
 }
