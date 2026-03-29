@@ -2,12 +2,14 @@
 
 use Illuminate\Foundation\Application;
 use App\Models\Announcement;
+use App\Notifications\CampusAlert;
 use App\Models\Organization;
 use App\Models\Event;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Illuminate\Http\Request; // Add this line to handle the request properly
 use App\Models\Task;
+use Illuminate\Support\Facades\Notification;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -24,7 +26,6 @@ Route::middleware([
     'verified',
 ])->group(function () {
     // Inject the Request object here
-    // Dashboard Route
     // Dashboard Route
     Route::get('/dashboard', function (Request $request) {
         $user = $request->user();
@@ -51,6 +52,56 @@ Route::middleware([
             'announcements' => $announcements, // Pass to Vue!
         ]);
     })->name('dashboard');
+
+    // Full Calendar View
+    Route::get('/calendar', function (Request $request) {
+        $user = $request->user();
+        
+        $eventsQuery = \App\Models\Event::with('college')->orderBy('event_date', 'asc');
+        
+        if ($user->college_id) {
+            $eventsQuery->where('college_id', $user->college_id)
+                        ->orWhereNull('college_id');
+        }
+        
+        // Notice we don't use ->take(5) here, we get ALL of them!
+        return Inertia::render('Calendar', [
+            'events' => $eventsQuery->get() 
+        ]);
+    })->name('calendar');
+
+    // Post a new announcement (Officers Only)
+    Route::post('/announcements', function (Request $request) {
+        $request->validate([
+            'organization_id' => 'required|exists:organizations,id',
+            'title' => 'required|string|max:255',
+            'content' => 'required|string',
+        ]);
+
+        $user = $request->user();
+
+        // SECURITY CHECK: Ensure this user is actually an officer of the selected org!
+        $org = $user->organizations()
+                    ->where('organizations.id', $request->organization_id)
+                    ->wherePivot('role', 'officer')
+                    ->firstOrFail();
+
+        // 1. Create the announcement
+        $announcement = Announcement::create([
+            'organization_id' => $org->id,
+            'user_id' => $user->id,
+            'title' => $request->title,
+            'content' => $request->content,
+        ]);
+
+        // 2. Fetch all members of this org EXCEPT the officer who just posted it
+        $members = $org->users()->where('users.id', '!=', $user->id)->get();
+
+        // 3. Blast the Smart Alert to everyone else!
+        Notification::send($members, new CampusAlert($announcement));
+
+        return back();
+    })->name('announcements.store');
 
     // Mark a specific notification as read
     Route::post('/notifications/{id}/read', function (Request $request, $id) {

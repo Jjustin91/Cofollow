@@ -1,7 +1,7 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { ref, computed } from 'vue';
-import { router, Link } from '@inertiajs/vue3'; // Combined import!
+import { router, Link, useForm } from '@inertiajs/vue3'; // Added useForm here!
 
 const props = defineProps({
     events: Array,
@@ -38,6 +38,29 @@ const progressPercentage = computed(() => {
     const completed = props.tasks.filter(t => t.is_completed).length;
     return Math.round((completed / props.tasks.length) * 100);
 });
+
+// --- OFFICER CONTROLS LOGIC ---
+
+// Filter to only show orgs where the user is an 'officer'
+const officerOrgs = computed(() => {
+    return props.myOrgs ? props.myOrgs.filter(org => org.pivot.role === 'officer') : [];
+});
+
+// Set up the form
+const announcementForm = useForm({
+    organization_id: '',
+    title: '',
+    content: '',
+});
+
+// Submit the form
+const submitAnnouncement = () => {
+    announcementForm.post(route('announcements.store'), {
+        preserveScroll: true,
+        onSuccess: () => announcementForm.reset(),
+    });
+};
+
 </script>
 
 <template>
@@ -82,7 +105,9 @@ const progressPercentage = computed(() => {
                     <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6 border-t-4 border-ustp-gold">
                         <div class="flex items-center justify-between mb-4">
                             <h3 class="text-lg font-bold text-ustp-blue">Upcoming Events</h3>
-                            <button class="text-sm text-gray-500 hover:text-ustp-blue">View Calendar &rarr;</button>
+                            <Link :href="route('calendar')" class="text-sm text-gray-500 hover:text-ustp-blue font-medium transition">
+                                View Calendar &rarr;
+                            </Link>
                         </div>
                         <ul class="divide-y divide-gray-200">
                             <li v-for="event in events" :key="event.id" class="py-3">
@@ -172,6 +197,47 @@ const progressPercentage = computed(() => {
                             You haven't joined any organizations yet.
                         </li>
                     </ul>
+                </div>
+
+                <!-- Officer Controls: Post Announcement (Only visible to Officers) -->
+                <div v-if="officerOrgs.length > 0" class="mt-6 bg-white overflow-hidden shadow-xl sm:rounded-lg p-6 border-t-4 border-red-500">
+                    <div class="flex items-center gap-2 mb-4">
+                        <svg class="h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        <h3 class="text-lg font-bold text-gray-900">Officer Controls: New Announcement</h3>
+                    </div>
+                    
+                    <form @submit.prevent="submitAnnouncement" class="space-y-4">
+                        <!-- Select Organization -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Post to Organization</label>
+                            <select v-model="announcementForm.organization_id" required class="mt-1 block w-full text-sm border-gray-300 focus:border-ustp-blue focus:ring-ustp-blue rounded-md shadow-sm">
+                                <option value="" disabled>Select an organization...</option>
+                                <option v-for="org in officerOrgs" :key="org.id" :value="org.id">
+                                    {{ org.name }} ({{ org.abbreviation }})
+                                </option>
+                            </select>
+                        </div>
+
+                        <!-- Announcement Title -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Title</label>
+                            <input v-model="announcementForm.title" type="text" required placeholder="e.g., Upcoming General Assembly" class="mt-1 block w-full text-sm border-gray-300 focus:border-ustp-blue focus:ring-ustp-blue rounded-md shadow-sm">
+                        </div>
+
+                        <!-- Content -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Message</label>
+                            <textarea v-model="announcementForm.content" required rows="3" placeholder="Write your announcement here..." class="mt-1 block w-full text-sm border-gray-300 focus:border-ustp-blue focus:ring-ustp-blue rounded-md shadow-sm"></textarea>
+                        </div>
+
+                        <div class="flex justify-end">
+                            <button type="submit" :disabled="announcementForm.processing" class="bg-ustp-blue text-white font-bold px-6 py-2 rounded-md hover:bg-ustp-gold hover:text-ustp-blue transition disabled:opacity-50">
+                                Post Announcement
+                            </button>
+                        </div>
+                    </form>
                 </div>
 
                 <!-- Organization News Feed -->
