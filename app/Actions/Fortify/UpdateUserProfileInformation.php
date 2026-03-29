@@ -21,6 +21,9 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             'photo' => ['nullable', 'mimes:jpg,jpeg,png', 'max:1024'],
+            // 1. Add validation for the new fields
+            'college_id' => ['nullable', 'exists:colleges,id'],
+            'program_id' => ['nullable', 'exists:programs,id'],
         ])->validateWithBag('updateProfileInformation');
 
         if (isset($input['photo'])) {
@@ -31,9 +34,12 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             $user instanceof MustVerifyEmail) {
             $this->updateVerifiedUser($user, $input);
         } else {
+            // 2. Add the fields here so they actually save to the database
             $user->forceFill([
                 'name' => $input['name'],
                 'email' => $input['email'],
+                'college_id' => $input['college_id'],
+                'program_id' => $input['program_id'],
             ])->save();
         }
     }

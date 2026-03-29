@@ -7,7 +7,6 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Inertia\Testing\Concerns\Has;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
@@ -34,6 +33,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'college_id',
+        'program_id',
     ];
 
     /**
@@ -48,6 +49,8 @@ class User extends Authenticatable
         'two_factor_secret',
     ];
 
+    // Add this property so Inertia always has access to the user's college and program
+    protected $with = ['college', 'program'];
     /**
      * The accessors to append to the model's array form.
      *
@@ -68,5 +71,21 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    // Add these relationship methods at the bottom of the class
+    public function college()
+    {
+        return $this->belongsTo(College::class);
+    }
+
+    public function program()
+    {
+        return $this->belongsTo(Program::class);
+    }
+    
+    public function tasks()
+    {
+        return $this->hasMany(Task::class);
     }
 }

@@ -18,6 +18,8 @@ const form = useForm({
     name: props.user.name,
     email: props.user.email,
     photo: null,
+    college_id: props.user.college_id || '', // Add this
+    program_id: props.user.program_id || '', // Add this
 });
 
 const verificationLinkSent = ref(null);
@@ -154,6 +156,38 @@ const clearPhotoFileInput = () => {
                     autocomplete="username"
                 />
                 <InputError :message="form.errors.email" class="mt-2" />
+                
+                    <!-- College Dropdown -->
+                <div class="col-span-6 sm:col-span-4 mt-4">
+                    <InputLabel for="college_id" value="College" />
+                    <select 
+                        id="college_id" 
+                        v-model="form.college_id"
+                        class="border-gray-300 focus:border-ustp-blue focus:ring-ustp-blue rounded-md shadow-sm mt-1 block w-full"
+                    >
+                        <option value="" disabled>Select your College</option>
+                        <option v-for="college in $page.props.colleges" :key="college.id" :value="college.id">
+                            {{ college.name }} ({{ college.abbreviation }})
+                        </option>
+                    </select>
+                    <InputError :message="form.errors.college_id" class="mt-2" />
+                </div>
+
+                <!-- Program Dropdown -->
+                <div class="col-span-6 sm:col-span-4 mt-4">
+                    <InputLabel for="program_id" value="Program" />
+                    <select 
+                        id="program_id" 
+                        v-model="form.program_id"
+                        class="border-gray-300 focus:border-ustp-blue focus:ring-ustp-blue rounded-md shadow-sm mt-1 block w-full"
+                    >
+                        <option value="" disabled>Select your Program</option>
+                        <option v-for="program in $page.props.programs" :key="program.id" :value="program.id">
+                            {{ program.name }} ({{ program.abbreviation }})
+                        </option>
+                    </select>
+                    <InputError :message="form.errors.program_id" class="mt-2" />
+                </div>
 
                 <div v-if="$page.props.jetstream.hasEmailVerification && user.email_verified_at === null">
                     <p class="text-sm mt-2">

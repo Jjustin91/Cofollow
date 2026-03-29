@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
         RolesAndPermissionsSeeder::class,
+        CollegeProgramSeeder::class, // Add this line!
         // CollegeSeeder::class, (If you created this one too)
         ]);
         // User::factory(10)->create();

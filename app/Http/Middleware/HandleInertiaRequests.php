@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\College;
+use App\Models\Program;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -35,9 +37,10 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
-        return [
-            ...parent::share($request),
-            //
-        ];
+        return array_merge(parent::share($request), [
+            // Add these two lines to share the data globally
+            'colleges' => College::all(),
+            'programs' => Program::all(),
+        ]);
     }
 }

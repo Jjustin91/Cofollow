@@ -41,8 +41,14 @@ const logout = () => {
                         <div class="flex">
                             <!-- Logo -->
                             <div class="shrink-0 flex items-center">
-                                <Link :href="route('dashboard')">
-                                    <ApplicationMark class="block h-9 w-auto" />
+                                <Link :href="route('dashboard')" class="flex items-center gap-2 group">
+                                    <!-- The SVG Logo -->
+                                    <ApplicationMark class="block h-10 w-auto group-hover:scale-105 transition-transform duration-300" />
+                                    
+                                    <!-- The Custom Two-Toned Text -->
+                                    <span class="text-2xl font-extrabold tracking-tight">
+                                        <span class="text-ustp-blue">Co</span><span class="text-ustp-gold">Follow</span>
+                                    </span>
                                 </Link>
                             </div>
 
