@@ -80,7 +80,7 @@ const logout = () => {
                                             </button>
                                         </span>
                                     </template>
-
+                                    
                                     <template #content>
                                         <div class="w-60">
                                             <!-- Team Management -->
@@ -119,6 +119,56 @@ const logout = () => {
                                                     </form>
                                                 </template>
                                             </template>
+                                        </div>
+                                    </template>
+                                </Dropdown>
+                            </div>
+
+                            <!-- Smart Alerts Notification Bell -->
+                            <div class="relative mr-4 flex items-center" v-if="$page.props.auth.user">
+                                <Dropdown align="right" width="80">
+                                    <template #trigger>
+                                        <button class="relative p-2 text-gray-400 hover:text-ustp-blue transition focus:outline-none group">
+                                            <!-- Bell Icon -->
+                                            <svg class="h-6 w-6 group-hover:animate-swing" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+                                            </svg>
+                                            
+                                            <!-- Unread Badge -->
+                                            <span 
+                                                v-if="$page.props.unreadNotifications?.length > 0" 
+                                                class="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-white"
+                                            >
+                                                {{ $page.props.unreadNotifications.length }}
+                                            </span>
+                                        </button>
+                                    </template>
+
+                                    <!-- The Dropdown Content -->
+                                    <template #content>
+                                        <div class="block px-4 py-2 text-xs text-gray-400 font-bold border-b border-gray-100 uppercase tracking-wider">
+                                            Unread Alerts
+                                        </div>
+                                        
+                                        <div class="max-h-80 overflow-y-auto">
+                                            <!-- Loop through unread notifications -->
+                                            <template v-for="notification in $page.props.unreadNotifications" :key="notification.id">
+                                                <Link 
+                                                    :href="route('notifications.read', notification.id)" 
+                                                    method="post" 
+                                                    as="button"
+                                                    class="w-full text-left block px-4 py-3 hover:bg-gray-50 transition border-b border-gray-50 last:border-0"
+                                                >
+                                                    <p class="text-[10px] font-bold text-ustp-blue mb-0.5">{{ notification.data.organization }}</p>
+                                                    <p class="text-sm text-gray-900 font-bold">{{ notification.data.title }}</p>
+                                                    <p class="text-xs text-gray-500 mt-1 line-clamp-2">{{ notification.data.message }}</p>
+                                                </Link>
+                                            </template>
+                                            
+                                            <!-- Empty State -->
+                                            <div v-if="$page.props.unreadNotifications?.length === 0" class="px-4 py-6 text-sm text-center text-gray-500">
+                                                You are all caught up!
+                                            </div>
                                         </div>
                                     </template>
                                 </Dropdown>

@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Foundation\Application;
+use App\Models\Announcement;
 use App\Models\Organization;
 use App\Models\Event;
 use Illuminate\Support\Facades\Route;
@@ -24,6 +25,7 @@ Route::middleware([
 ])->group(function () {
     // Inject the Request object here
     // Dashboard Route
+    // Dashboard Route
     Route::get('/dashboard', function (Request $request) {
         $user = $request->user();
         
@@ -32,11 +34,32 @@ Route::middleware([
             $eventsQuery->where('college_id', $user->college_id)->orWhereNull('college_id');
         }
         
+        // Get the IDs of the orgs this user joined
+        $myOrgIds = $user->organizations()->pluck('organizations.id');
+        
+        // Fetch the latest announcements from those specific orgs
+        $announcements = Announcement::with(['organization', 'user'])
+            ->whereIn('organization_id', $myOrgIds)
+            ->latest()
+            ->take(10)
+            ->get();
+        
         return Inertia::render('Dashboard', [
             'events' => $eventsQuery->take(5)->get(),
-            'tasks' => $user->tasks()->orderBy('created_at', 'desc')->get(), // Pass the user's tasks
+            'tasks' => $user->tasks()->orderBy('created_at', 'desc')->get(),
+            'myOrgs' => $user->organizations()->get(),
+            'announcements' => $announcements, // Pass to Vue!
         ]);
     })->name('dashboard');
+
+    // Mark a specific notification as read
+    Route::post('/notifications/{id}/read', function (Request $request, $id) {
+        $notification = $request->user()->notifications()->findOrFail($id);
+        $notification->markAsRead();
+        
+        // Redirect them back so they stay on the same page
+        return back(); 
+    })->name('notifications.read');
 
     // Add a new task
     Route::post('/tasks', function (Request $request) {

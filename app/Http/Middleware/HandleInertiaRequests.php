@@ -41,6 +41,9 @@ class HandleInertiaRequests extends Middleware
             // Add these two lines to share the data globally
             'colleges' => College::all(),
             'programs' => Program::all(),
+            // Add this new line to pass unread notifications globally!
+            'auth.notifications' => fn () => $request->user() ? $request->user()->unreadNotifications : [],
+            'unreadNotifications' => fn () => $request->user() ? $request->user()->unreadNotifications : [],
         ]);
     }
 }
