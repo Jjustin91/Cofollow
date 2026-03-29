@@ -21,11 +21,20 @@ class CreateNewUser implements CreatesNewUsers
     {
         Validator::make($input, [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users', 'regex:/^[a-zA-Z0-9_.+-]+@ustp\.edu\.ph$/'],
+            'email' => [
+                'required',
+                'string',
+                'email',
+                'max:255',
+                'unique:users',
+                'regex:/^[a-zA-Z0-9_.+-]+@ustp\.edu\.ph$/', // This locks it to USTP
+            ],
             'password' => $this->passwordRules(),
-            'terms' => Jetstream::hasTermsAndPrivacyPolicyFeature() ? ['accepted', 'required'] : '',
+        ], [
+            // Custom error message so users know exactly why it failed
+            'email.regex' => 'You must use a valid @ustp.edu.ph email address to register.',
         ])->validate();
-
+        
         return User::create([
             'name' => $input['name'],
             'email' => $input['email'],
